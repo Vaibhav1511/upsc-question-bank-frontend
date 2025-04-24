@@ -65,6 +65,7 @@ export default function QuestionList() {
               <th className="p-2">Format</th>
               <th className="p-2">Difficulty</th>
               <th className="p-2">Tags</th>
+              <th className="p-2">Source</th> {/* ✅ Added */}
               <th className="p-2">Image</th>
               <th className="p-2">Actions</th>
             </tr>
@@ -87,6 +88,7 @@ export default function QuestionList() {
                 <td className="p-2">{q.format}</td>
                 <td className="p-2">{q.difficulty}</td>
                 <td className="p-2">{q.tags}</td>
+                <td className="p-2">{q.source || '—'}</td> {/* ✅ Display value */}
                 <td className="p-2">
                   {q.image_url ? (
                     <img src={q.image_url} alt="Question" className="h-12 w-auto" />
@@ -101,7 +103,6 @@ export default function QuestionList() {
                   >
                     Delete
                   </button>
-                  {/* Optional Edit button here */}
                 </td>
               </tr>
             ))}
