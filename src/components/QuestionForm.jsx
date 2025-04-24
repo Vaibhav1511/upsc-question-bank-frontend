@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import api from '../api'; // ✅ Use centralized API config
+import api from '../api'; // ✅ Use centralized API base
 
 export default function QuestionForm({ onSuccess }) {
   const [question, setQuestion] = useState('');
@@ -16,12 +16,11 @@ export default function QuestionForm({ onSuccess }) {
   const [subtopic, setSubtopic] = useState('');
   const [questionType, setQuestionType] = useState('Factual');
   const [format, setFormat] = useState('Single Liner');
+  const [source, setSource] = useState(''); // ✅ NEW STATE
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log("🚀 Submitting question...");
-
       await api.post('/questions', {
         question_text: question,
         option_a: options.A,
@@ -38,6 +37,7 @@ export default function QuestionForm({ onSuccess }) {
         subtopic,
         question_type: questionType,
         format,
+        source, // ✅ include in request
       });
 
       alert('✅ Question added!');
@@ -53,6 +53,7 @@ export default function QuestionForm({ onSuccess }) {
       setSubtopic('');
       setQuestionType('Factual');
       setFormat('Single Liner');
+      setSource('');
       onSuccess?.();
     } catch (error) {
       console.error('❌ Failed to submit:', error);
@@ -86,7 +87,12 @@ export default function QuestionForm({ onSuccess }) {
       <label className="block mt-4 font-bold">Explanation</label>
       <ReactQuill value={explanation} onChange={setExplanation} />
 
-      <input placeholder="Tags (comma separated)" value={tags} onChange={e => setTags(e.target.value)} className="block w-full border p-2 mt-4" />
+      <input
+        placeholder="Tags (comma separated)"
+        value={tags}
+        onChange={e => setTags(e.target.value)}
+        className="block w-full border p-2 mt-4"
+      />
 
       <label className="block mt-4 font-bold">Difficulty</label>
       <select value={difficulty} onChange={e => setDifficulty(e.target.value)} className="block w-full p-2 border">
@@ -95,10 +101,30 @@ export default function QuestionForm({ onSuccess }) {
         <option>Hard</option>
       </select>
 
-      <input placeholder="Image URL" value={image} onChange={e => setImage(e.target.value)} className="block w-full border p-2 mt-4" />
-      <input placeholder="Subject" value={subject} onChange={e => setSubject(e.target.value)} className="block w-full border p-2 mt-4" />
-      <input placeholder="Topic" value={topic} onChange={e => setTopic(e.target.value)} className="block w-full border p-2 mt-4" />
-      <input placeholder="Subtopic" value={subtopic} onChange={e => setSubtopic(e.target.value)} className="block w-full border p-2 mt-4" />
+      <input
+        placeholder="Image URL"
+        value={image}
+        onChange={e => setImage(e.target.value)}
+        className="block w-full border p-2 mt-4"
+      />
+      <input
+        placeholder="Subject"
+        value={subject}
+        onChange={e => setSubject(e.target.value)}
+        className="block w-full border p-2 mt-4"
+      />
+      <input
+        placeholder="Topic"
+        value={topic}
+        onChange={e => setTopic(e.target.value)}
+        className="block w-full border p-2 mt-4"
+      />
+      <input
+        placeholder="Subtopic"
+        value={subtopic}
+        onChange={e => setSubtopic(e.target.value)}
+        className="block w-full border p-2 mt-4"
+      />
 
       <label className="block mt-4 font-bold">Type</label>
       <select value={questionType} onChange={e => setQuestionType(e.target.value)} className="block w-full p-2 border">
@@ -116,6 +142,13 @@ export default function QuestionForm({ onSuccess }) {
         <option>Pairing</option>
         <option>Assertion/Reason</option>
       </select>
+
+      <input
+        placeholder="Source (e.g., PYQ, Mock Test, Current Affairs)"
+        value={source}
+        onChange={e => setSource(e.target.value)}
+        className="block w-full border p-2 mt-4"
+      />
 
       <button type="submit" className="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Add Question</button>
     </form>
