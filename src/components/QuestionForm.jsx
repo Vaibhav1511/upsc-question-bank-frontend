@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import api from '../api'; // ✅ Use centralized API base
+import api from '../api';
 
 export default function QuestionForm({ onSuccess }) {
   const [question, setQuestion] = useState('');
@@ -16,7 +16,7 @@ export default function QuestionForm({ onSuccess }) {
   const [subtopic, setSubtopic] = useState('');
   const [questionType, setQuestionType] = useState('Factual');
   const [format, setFormat] = useState('Single Liner');
-  const [source, setSource] = useState(''); // ✅ NEW STATE
+  const [source, setSource] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +37,7 @@ export default function QuestionForm({ onSuccess }) {
         subtopic,
         question_type: questionType,
         format,
-        source, // ✅ include in request
+        source,
       });
 
       alert('✅ Question added!');
@@ -107,18 +107,34 @@ export default function QuestionForm({ onSuccess }) {
         onChange={e => setImage(e.target.value)}
         className="block w-full border p-2 mt-4"
       />
-      <input
-        placeholder="Subject"
+
+      <label className="block mt-4 font-bold">Subject</label>
+      <select
         value={subject}
         onChange={e => setSubject(e.target.value)}
-        className="block w-full border p-2 mt-4"
-      />
+        className="block w-full p-2 border"
+      >
+        <option value="">Select a Subject</option>
+        <option>Polity</option>
+        <option>Economy</option>
+        <option>Ancient History</option>
+        <option>Medieval History</option>
+        <option>Modern History</option>
+        <option>Post Independence</option>
+        <option>Geography</option>
+        <option>Science and Technology</option>
+        <option>Environment</option>
+        <option>Sport & Awards</option>
+        <option>Miscellaneous</option>
+      </select>
+
       <input
         placeholder="Topic"
         value={topic}
         onChange={e => setTopic(e.target.value)}
         className="block w-full border p-2 mt-4"
       />
+
       <input
         placeholder="Subtopic"
         value={subtopic}
