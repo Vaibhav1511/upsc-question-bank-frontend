@@ -71,6 +71,40 @@ export default function QuestionForm({ onSuccess }) {
         "Anti-Defection Law",
         "Other Constitutional Dimension"
       ]
+    },
+    Economy: {
+      "BASICS OF ECONOMICS": [
+        "Core Economics and Growth",
+        "National Income",
+        "Planning in India"
+      ],
+      "PUBLIC FINANCE IN INDIA": [
+        "Fiscal Policy in India",
+        "Taxation in India"
+      ],
+      "MONEY AND CAPITAL MARKET": [
+        "Monetary Policy and Banking",
+        "Inflation",
+        "Money Market and Capital Market"
+      ],
+      "DEVELOPMENTAL ECONOMICS": [
+        "Poverty, Health and Unemployment",
+        "Government Schemes"
+      ],
+      "SECTORS OF ECONOMY": [
+        "Infrastructure and Industries",
+        "Insurance Sector"
+      ],
+      "EXTERNAL SECTOR AND INTERNATIONAL INSTITUTIONS": [
+        "External Sector",
+        "International Institutions"
+      ],
+      "AGRICULTURE": [
+        "Agriculture Inputs",
+        "Crops, Cropping Patterns and Sustainable Practices",
+        "Food Processing",
+        "Government Initiatives and International Agreements"
+      ]
     }
   };
 
@@ -161,8 +195,9 @@ export default function QuestionForm({ onSuccess }) {
         className="block w-full p-2 border"
       >
         <option value="">Select a Subject</option>
-        <option>Polity</option>
-        {/* Add more subjects here later */}
+        {Object.keys(topicOptions).map((s) => (
+          <option key={s} value={s}>{s}</option>
+        ))}
       </select>
 
       <label className="block mt-4 font-bold">Topic</label>
