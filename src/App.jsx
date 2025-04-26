@@ -1,17 +1,34 @@
+import { useState } from 'react';
 import QuestionForm from './components/QuestionForm';
 import QuestionList from './components/QuestionList';
 
-function App() {
+export default function App() {
+  const [questionToEdit, setQuestionToEdit] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+console.log("✅ React App is Running");
+  const handleSuccess = () => {
+    setRefreshKey(oldKey => oldKey + 1); // force reload of QuestionList
+    setQuestionToEdit(null); // clear the form after successful add/update
+  };
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 text-center">UPSC Question Bank</h1>
-      <QuestionForm onSuccess={() => window.location.reload()} />
-      <QuestionList />
+    <div className="min-h-screen bg-gray-50">
+      <h1 className="text-3xl font-bold text-center p-6">UPSC Question Bank</h1>
+      <div className="max-w-6xl mx-auto">
+        <QuestionForm
+          onSuccess={handleSuccess}
+          questionToEdit={questionToEdit}
+          setQuestionToEdit={setQuestionToEdit}
+        />
+        <QuestionList
+          key={refreshKey} // reload when question added or updated
+          setQuestionToEdit={setQuestionToEdit}
+          onSuccess={handleSuccess}
+        />
+      </div>
     </div>
   );
 }
 
-export default App;
 
 
-console.log("✅ React App is Running");
