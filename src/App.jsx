@@ -1,34 +1,35 @@
-import { useState } from 'react';
-import QuestionForm from './components/QuestionForm';
-import QuestionList from './components/QuestionList';
+import { useState } from "react";
+import QuestionForm from "./components/QuestionForm";
+import QuestionList from "./components/QuestionList";
 
 export default function App() {
   const [questionToEdit, setQuestionToEdit] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0);
-console.log("✅ React App is Running");
+  const [refreshQuestions, setRefreshQuestions] = useState(false);
+
   const handleSuccess = () => {
-    setRefreshKey(oldKey => oldKey + 1); // force reload of QuestionList
-    setQuestionToEdit(null); // clear the form after successful add/update
+    setRefreshQuestions(prev => !prev); // Toggle to trigger refresh
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <h1 className="text-3xl font-bold text-center p-6">UPSC Question Bank</h1>
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <h1 className="text-2xl font-bold mb-6 text-center">UPSC Question Bank</h1>
+
+      {/* Question Form Section */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <QuestionForm
           onSuccess={handleSuccess}
           questionToEdit={questionToEdit}
           setQuestionToEdit={setQuestionToEdit}
         />
+      </div>
+
+      {/* Saved Questions List Section */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
         <QuestionList
-          key={refreshKey} // reload when question added or updated
+          refreshTrigger={refreshQuestions}
           setQuestionToEdit={setQuestionToEdit}
-          onSuccess={handleSuccess}
         />
       </div>
     </div>
   );
 }
-
-
-
