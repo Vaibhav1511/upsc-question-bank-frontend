@@ -1,27 +1,63 @@
 import { useEffect, useState } from "react";
 import api from "../api";
-import topicOptions from "../data/topicOptions.json"; // Your topic-subtopic JSON
 
-export default function QuestionList() {
+export default function QuestionList({ refreshTrigger, setQuestionToEdit }) {
   const [questions, setQuestions] = useState([]);
+  const [filteredQuestions, setFilteredQuestions] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [filters, setFilters] = useState({
-    subject: '',
-    topic: '',
-    subtopic: '',
-    source: '',
-    question_type: '',
-    format: ''
+    subject: "",
+    topic: "",
+    subtopic: "",
+    difficulty: "",
+    question_type: "",
+    format: "",
+    source: ""
   });
-  const [page, setPage] = useState(1);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const questionsPerPage = 10;
 
   const fetchQuestions = async () => {
     try {
-      const params = { ...filters, page, limit: 20 };
-      const res = await api.get("/questions", { params });
+      const res = await api.get("/questions", { params: filters });
       setQuestions(res.data);
-    } catch (error) {
-      console.error("Failed to fetch questions:", error);
+      setFilteredQuestions(res.data);
+      setSelectedIds([]); // Reset selection on new filter
+      setCurrentPage(1); // Reset to page 1
+    } catch (err) {
+      console.error("Failed to fetch questions", err);
     }
+  };
+
+  useEffect(() => {
+    fetchQuestions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
+
+  const handleApplyFilter = () => {
+    fetchQuestions();
+  };
+
+  const handleClearFilter = () => {
+    setFilters({
+      subject: "",
+      topic: "",
+      subtopic: "",
+      difficulty: "",
+      question_type: "",
+      format: "",
+      source: ""
+    });
+    setSelectedIds([]);
+    setCurrentPage(1);
+    fetchQuestions();
+  };
+
+  const toggleSelection = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((q) => q !== id) : [...prev, id]
+    );
   };
 
   const handleDelete = async (id) => {
@@ -31,10 +67,11 @@ export default function QuestionList() {
     }
   };
 
-  const handleExport = async () => {
-    const selectedIds = questions.map(q => q.id);
-    if (selectedIds.length === 0) return;
-
+  const handleExportSelected = async () => {
+    if (selectedIds.length === 0) {
+      alert("Please select at least one question to export.");
+      return;
+    }
     const res = await api.post(
       "/questions/export",
       { ids: selectedIds },
@@ -48,124 +85,100 @@ export default function QuestionList() {
     link.click();
   };
 
-  const handleApplyFilters = () => {
-    setPage(1);
-    fetchQuestions();
+  const handleExportAllFiltered = async () => {
+    if (filteredQuestions.length === 0) {
+      alert("No filtered questions to export.");
+      return;
+    }
+    const allIds = filteredQuestions.map(q => q.id);
+    const res = await api.post(
+      "/questions/export",
+      { ids: allIds },
+      { responseType: "blob" }
+    );
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "filtered-questions.pdf");
+    document.body.appendChild(link);
+    link.click();
   };
 
-  const handleClearFilters = () => {
-    setFilters({
-      subject: '',
-      topic: '',
-      subtopic: '',
-      source: '',
-      question_type: '',
-      format: ''
-    });
-    setPage(1);
-    setQuestions([]); // Clear results
-  };
+  // Pagination logic
+  const indexOfLastQuestion = currentPage * questionsPerPage;
+  const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
+  const currentQuestions = filteredQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+  const totalPages = Math.ceil(filteredQuestions.length / questionsPerPage);
 
-  useEffect(() => {
-    // Do not fetch automatically at mount
-  }, []);
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="p-4 mt-6">
       <h2 className="text-xl font-bold mb-4">Saved Questions</h2>
 
-      {/* Filter Controls */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <select
-          value={filters.subject}
-          onChange={e => setFilters({ ...filters, subject: e.target.value, topic: '', subtopic: '' })}
-          className="p-2 border rounded"
-        >
-          <option value="">Select Subject</option>
-          {Object.keys(topicOptions).map(subject => (
-            <option key={subject} value={subject}>{subject}</option>
-          ))}
-        </select>
-
-        <select
-          value={filters.topic}
-          onChange={e => setFilters({ ...filters, topic: e.target.value, subtopic: '' })}
-          className="p-2 border rounded"
-          disabled={!filters.subject}
-        >
-          <option value="">Select Topic</option>
-          {filters.subject && topicOptions[filters.subject] &&
-            Object.keys(topicOptions[filters.subject]).map(topic => (
-              <option key={topic} value={topic}>{topic}</option>
-            ))
-          }
-        </select>
-
-        <select
-          value={filters.subtopic}
-          onChange={e => setFilters({ ...filters, subtopic: e.target.value })}
-          className="p-2 border rounded"
-          disabled={!filters.topic}
-        >
-          <option value="">Select Subtopic</option>
-          {filters.subject && filters.topic && topicOptions[filters.subject]?.[filters.topic]?.map(subtopic => (
-            <option key={subtopic} value={subtopic}>{subtopic}</option>
-          ))}
-        </select>
-
+      {/* Filters */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <input
-          type="text"
+          placeholder="Subject"
+          value={filters.subject}
+          onChange={(e) => setFilters({ ...filters, subject: e.target.value })}
+          className="border p-2"
+        />
+        <input
+          placeholder="Topic"
+          value={filters.topic}
+          onChange={(e) => setFilters({ ...filters, topic: e.target.value })}
+          className="border p-2"
+        />
+        <input
+          placeholder="Subtopic"
+          value={filters.subtopic}
+          onChange={(e) => setFilters({ ...filters, subtopic: e.target.value })}
+          className="border p-2"
+        />
+        <input
+          placeholder="Difficulty"
+          value={filters.difficulty}
+          onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })}
+          className="border p-2"
+        />
+        <input
+          placeholder="Type"
+          value={filters.question_type}
+          onChange={(e) => setFilters({ ...filters, question_type: e.target.value })}
+          className="border p-2"
+        />
+        <input
+          placeholder="Format"
+          value={filters.format}
+          onChange={(e) => setFilters({ ...filters, format: e.target.value })}
+          className="border p-2"
+        />
+        <input
           placeholder="Source"
           value={filters.source}
-          onChange={e => setFilters({ ...filters, source: e.target.value })}
-          className="p-2 border rounded"
+          onChange={(e) => setFilters({ ...filters, source: e.target.value })}
+          className="border p-2"
         />
+      </div>
 
-        <select
-          value={filters.question_type}
-          onChange={e => setFilters({ ...filters, question_type: e.target.value })}
-          className="p-2 border rounded"
-        >
-          <option value="">Select Type</option>
-          <option value="Factual">Factual</option>
-          <option value="Conceptual">Conceptual</option>
-          <option value="Analytical">Analytical</option>
-        </select>
-
-        <select
-          value={filters.format}
-          onChange={e => setFilters({ ...filters, format: e.target.value })}
-          className="p-2 border rounded"
-        >
-          <option value="">Select Format</option>
-          <option value="Single Liner">Single Liner</option>
-          <option value="Two Statement">Two Statement</option>
-          <option value="Three Statement">Three Statement</option>
-          <option value="More than Three Statements">More than Three Statements</option>
-          <option value="Pairing">Pairing</option>
-          <option value="Assertion/Reason">Assertion/Reason</option>
-        </select>
-
-        <button onClick={handleApplyFilters} className="bg-blue-600 text-white p-2 rounded">
-          Apply Filters
+      <div className="space-x-2 mb-6">
+        <button onClick={handleApplyFilter} className="bg-blue-600 text-white px-4 py-2 rounded">Apply Filter</button>
+        <button onClick={handleClearFilter} className="bg-gray-500 text-white px-4 py-2 rounded">Clear Filter</button>
+        <button onClick={handleExportSelected} className="bg-green-600 text-white px-4 py-2 rounded" disabled={selectedIds.length === 0}>
+          Export Selected ({selectedIds.length})
         </button>
-        <button onClick={handleClearFilters} className="bg-gray-400 text-white p-2 rounded">
-          Clear Filters
+        <button onClick={handleExportAllFiltered} className="bg-purple-600 text-white px-4 py-2 rounded">
+          Export All Filtered ({filteredQuestions.length})
         </button>
       </div>
 
-      {/* Export Button */}
-      {questions.length > 0 && (
-        <button onClick={handleExport} className="mb-4 bg-green-600 text-white px-3 py-1 rounded">
-          Export All ({questions.length})
-        </button>
-      )}
-
-      {/* Questions Table */}
+      {/* Table */}
       <div className="overflow-auto">
         <table className="w-full border text-sm">
           <thead>
             <tr className="bg-gray-100">
+              <th className="p-2">✔️</th>
               <th className="p-2">Question</th>
               <th className="p-2">Subject</th>
               <th className="p-2">Topic</th>
@@ -173,14 +186,20 @@ export default function QuestionList() {
               <th className="p-2">Type</th>
               <th className="p-2">Format</th>
               <th className="p-2">Difficulty</th>
-              <th className="p-2">Tags</th>
               <th className="p-2">Source</th>
               <th className="p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {questions.map((q) => (
+            {currentQuestions.map((q) => (
               <tr key={q.id} className="border-t">
+                <td className="p-2 text-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(q.id)}
+                    onChange={() => toggleSelection(q.id)}
+                  />
+                </td>
                 <td className="p-2" dangerouslySetInnerHTML={{ __html: q.question_text }} />
                 <td className="p-2">{q.subject}</td>
                 <td className="p-2">{q.topic}</td>
@@ -188,34 +207,38 @@ export default function QuestionList() {
                 <td className="p-2">{q.question_type}</td>
                 <td className="p-2">{q.format}</td>
                 <td className="p-2">{q.difficulty}</td>
-                <td className="p-2">{q.tags}</td>
                 <td className="p-2">{q.source}</td>
-                <td className="p-2">
+                <td className="p-2 space-x-2">
                   <button
                     onClick={() => handleDelete(q.id)}
                     className="bg-red-500 text-white px-2 py-1 rounded"
                   >
                     Delete
                   </button>
+                  <button
+                    onClick={() => setQuestionToEdit(q)}
+                    className="bg-yellow-500 text-white px-2 py-1 rounded"
+                  >
+                    Edit
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
 
-        {/* Pagination buttons */}
-        {questions.length > 0 && (
-          <div className="flex justify-center items-center mt-4 gap-4">
-            {page > 1 && (
-              <button onClick={() => setPage(page - 1)} className="px-4 py-2 bg-blue-500 text-white rounded">
-                Previous
-              </button>
-            )}
-            <button onClick={() => setPage(page + 1)} className="px-4 py-2 bg-blue-500 text-white rounded">
-              Next
-            </button>
-          </div>
-        )}
+      {/* Pagination */}
+      <div className="mt-4 flex justify-center">
+        {Array.from({ length: totalPages }, (_, idx) => (
+          <button
+            key={idx + 1}
+            onClick={() => paginate(idx + 1)}
+            className={`mx-1 px-3 py-1 rounded ${currentPage === idx + 1 ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+          >
+            {idx + 1}
+          </button>
+        ))}
       </div>
     </div>
   );
