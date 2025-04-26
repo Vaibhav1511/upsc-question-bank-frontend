@@ -25,13 +25,19 @@ export default function QuestionList({ onEdit }) {
     setSelectedIds([]); // Clear selection after fresh fetch
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete?')) {
-      await api.delete(`/questions/${id}`);
-      fetchQuestions();
-    }
-  };
+const handleDelete = async (id) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this question?");
+  if (!confirmDelete) return;
 
+  try {
+    await api.delete(`/questions/${id}`);
+    alert('🗑️ Question deleted successfully!');
+    fetchQuestions(); // Re-fetch the filtered or unfiltered questions
+  } catch (error) {
+    console.error('❌ Error deleting question:', error);
+    alert('Failed to delete the question.');
+  }
+};
   const toggleSelection = (id) => {
     setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(q => q !== id) : [...prev, id]
