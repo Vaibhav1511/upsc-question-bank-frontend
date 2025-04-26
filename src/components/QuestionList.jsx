@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api";
 
 export default function QuestionList() {
+  const [questionToEdit, setQuestionToEdit] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -183,6 +184,7 @@ export default function QuestionList() {
                   )}
                 </td>
                 <td className="p-2 space-x-2">
+                  <button onClick={() => setQuestionToEdit(q)} className="bg-blue-500 text-white px-2 py-1 rounded">Edit</button>
                   <button
                     onClick={() => handleDelete(q.id)}
                     className="bg-red-500 text-white px-2 py-1 rounded"

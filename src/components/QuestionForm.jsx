@@ -3,7 +3,9 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import api from '../api';
 
-export default function QuestionForm({ onSuccess }) {
+import { useEffect } from 'react';
+
+export default function QuestionForm({ onSuccess, questionToEdit, setQuestionToEdit }) {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState({ A: '', B: '', C: '', D: '' });
   const [answer, setAnswer] = useState('A');
@@ -16,6 +18,7 @@ export default function QuestionForm({ onSuccess }) {
   const [subtopic, setSubtopic] = useState('');
   const [questionType, setQuestionType] = useState('Factual');
   const [format, setFormat] = useState('Single Liner');
+  const [source, setSource] = useState('');
   const [source, setSource] = useState('');
 
   const topicOptions = {
@@ -107,6 +110,29 @@ export default function QuestionForm({ onSuccess }) {
       ]
     }
   };
+
+  useEffect(() => {
+    if (questionToEdit) {
+      setQuestion(questionToEdit.question_text || '');
+      setOptions({
+        A: questionToEdit.option_a || '',
+        B: questionToEdit.option_b || '',
+        C: questionToEdit.option_c || '',
+        D: questionToEdit.option_d || ''
+      });
+      setAnswer(questionToEdit.correct_option || 'A');
+      setExplanation(questionToEdit.explanation || '');
+      setTags(questionToEdit.tags || '');
+      setDifficulty(questionToEdit.difficulty || 'Easy');
+      setImage(questionToEdit.image_url || '');
+      setSubject(questionToEdit.subject || '');
+      setTopic(questionToEdit.topic || '');
+      setSubtopic(questionToEdit.subtopic || '');
+      setQuestionType(questionToEdit.question_type || 'Factual');
+      setFormat(questionToEdit.format || 'Single Liner');
+      setSource(questionToEdit.source || '');
+    }
+  }, [questionToEdit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
