@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
-import topicOptions from '../data/topicOptions.json'; // if you are using dynamic topicOptions
+import topicOptions from '../data/topicOptions.json';
 
 export default function QuestionList({ onEdit }) {
   const [questions, setQuestions] = useState([]);
@@ -12,6 +12,7 @@ export default function QuestionList({ onEdit }) {
     question_type: '',
     format: ''
   });
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const fetchQuestions = async () => {
     const params = {};
@@ -21,18 +22,50 @@ export default function QuestionList({ onEdit }) {
 
     const res = await api.get('/questions', { params });
     setQuestions(res.data);
+    setSelectedIds([]); // Clear selection after fresh fetch
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete?')) {
       await api.delete(`/questions/${id}`);
-      fetchQuestions(); // ✅ refresh after delete
+      fetchQuestions();
     }
   };
 
-  useEffect(() => {
-    fetchQuestions();
-  }, []);
+  const toggleSelection = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(q => q !== id) : [...prev, id]
+    );
+  };
+
+  const handleExportSelected = async () => {
+    if (selectedIds.length === 0) {
+      alert("Please select questions to export.");
+      return;
+    }
+    const res = await api.post('/questions/export', { ids: selectedIds }, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'selected-questions.pdf');
+    document.body.appendChild(link);
+    link.click();
+  };
+
+  const handleExportAll = async () => {
+    const allIds = questions.map(q => q.id);
+    if (allIds.length === 0) {
+      alert("No questions to export.");
+      return;
+    }
+    const res = await api.post('/questions/export', { ids: allIds }, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'all-filtered-questions.pdf');
+    document.body.appendChild(link);
+    link.click();
+  };
 
   const applyFilters = () => {
     fetchQuestions();
@@ -50,9 +83,13 @@ export default function QuestionList({ onEdit }) {
     fetchQuestions();
   };
 
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
   return (
     <div className="p-4">
-      {/* Filters */}
+      {/* Filter Section */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <select value={filters.subject} onChange={e => setFilters({ ...filters, subject: e.target.value, topic: '', subtopic: '' })}>
           <option value="">Select Subject</option>
@@ -104,28 +141,67 @@ export default function QuestionList({ onEdit }) {
         </div>
       </div>
 
-      {/* Questions List */}
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th>Question</th>
-            <th>Subject</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {questions.map((q) => (
-            <tr key={q.id}>
-              <td dangerouslySetInnerHTML={{ __html: q.question_text }} className="p-2" />
-              <td className="p-2">{q.subject}</td>
-              <td className="p-2 space-x-2">
-                <button onClick={() => onEdit(q)} className="bg-yellow-400 px-2 py-1 rounded">Edit</button>
-                <button onClick={() => handleDelete(q.id)} className="bg-red-600 text-white px-2 py-1 rounded">Delete</button>
-              </td>
+      {/* Export Buttons */}
+      <div className="flex space-x-4 mb-6">
+        <button
+          onClick={handleExportSelected}
+          disabled={selectedIds.length === 0}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Export Selected ({selectedIds.length})
+        </button>
+
+        <button
+          onClick={handleExportAll}
+          disabled={questions.length === 0}
+          className="bg-purple-600 text-white px-4 py-2 rounded"
+        >
+          Export All
+        </button>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-auto">
+        <table className="w-full border text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2">✔️</th>
+              <th className="p-2">Question</th>
+              <th className="p-2">Subject</th>
+              <th className="p-2">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {questions.map((q) => (
+              <tr key={q.id} className="border-t">
+                <td className="p-2 text-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(q.id)}
+                    onChange={() => toggleSelection(q.id)}
+                  />
+                </td>
+                <td className="p-2" dangerouslySetInnerHTML={{ __html: q.question_text }} />
+                <td className="p-2">{q.subject}</td>
+                <td className="p-2 space-x-2">
+                  <button
+                    onClick={() => onEdit(q)}
+                    className="bg-yellow-400 text-black px-2 py-1 rounded"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(q.id)}
+                    className="bg-red-600 text-white px-2 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
