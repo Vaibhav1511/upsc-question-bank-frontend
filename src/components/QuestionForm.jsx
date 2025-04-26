@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import api from '../api';
+import topicOptions from '../data/topicOptions.json';
 
 export default function QuestionForm({ onSuccess, questionToEdit, setQuestionToEdit }) {
   const [question, setQuestion] = useState('');
@@ -18,95 +19,7 @@ export default function QuestionForm({ onSuccess, questionToEdit, setQuestionToE
   const [format, setFormat] = useState('Single Liner');
   const [source, setSource] = useState('');
 
-  const topicOptions = {
-    Polity: {
-      "INTRODUCTION TO THE CONSTITUTION": [
-        "Historical Background & Colonial rule",
-        "Constituent Assembly",
-        "Salient Features/ Schedules/Parts of the Constitution",
-        "Preamble",
-        "Union and its territory",
-        "Citizenship"
-      ],
-      "FOUNDATIONS OF THE CONSTITUTION": [
-        "Amendment to the Constitution",
-        "Basic Structure",
-        "Fundamental Rights",
-        "Directive Principles of State Policy (DPSP)",
-        "Fundamental Duties",
-        "Cooperatives",
-        "Emergency Provisions"
-      ],
-      "SYSTEM OF GOVERNMENT": [
-        "Parliamentary System",
-        "Federal System",
-        "Centre-State/Federal Relations",
-        "Inter-State Relations"
-      ],
-      "JUDICIARY": [
-        "The Supreme Court",
-        "High Courts",
-        "Lower Judiciary and Tribunals",
-        "Judicial Activism",
-        "Important Judgments"
-      ],
-      "CENTRE AND STATE EXECUTIVES": [
-        "Union Executive",
-        "State Executive"
-      ],
-      "UNION AND STATE LEGISLATURE": [
-        "The Parliament",
-        "State Legislature"
-      ],
-      "LOCAL GOVERNMENT - UNION TERRITORIES - SPECIAL STATUS AREAS": [
-        "Local Governments/PRI",
-        "Union Territories/Special Areas"
-      ],
-      "CONSTITUTIONAL AND NON-CONSTITUTIONAL BODIES": [
-        "Constitutional Bodies",
-        "Non-Constitutional Bodies"
-      ],
-      "MISCELLANEOUS": [
-        "Election",
-        "Anti-Defection Law",
-        "Other Constitutional Dimension"
-      ]
-    },
-    Economy: {
-      "BASICS OF ECONOMICS": [
-        "Core Economics and Growth",
-        "National Income",
-        "Planning in India"
-      ],
-      "PUBLIC FINANCE IN INDIA": [
-        "Fiscal Policy in India",
-        "Taxation in India"
-      ],
-      "MONEY AND CAPITAL MARKET": [
-        "Monetary Policy and Banking",
-        "Inflation",
-        "Money Market and Capital Market"
-      ],
-      "DEVELOPMENTAL ECONOMICS": [
-        "Poverty, Health and Unemployment",
-        "Government Schemes"
-      ],
-      "SECTORS OF ECONOMY": [
-        "Infrastructure and Industries",
-        "Insurance Sector"
-      ],
-      "EXTERNAL SECTOR AND INTERNATIONAL INSTITUTIONS": [
-        "External Sector",
-        "International Institutions"
-      ],
-      "AGRICULTURE": [
-        "Agriculture Inputs",
-        "Crops, Cropping Patterns and Sustainable Practices",
-        "Food Processing",
-        "Government Initiatives and International Agreements"
-      ]
-    }
-  };
+
 
   useEffect(() => {
     if (questionToEdit) {
