@@ -19,7 +19,7 @@ export default function QuestionForm({ onSuccess, questionToEdit, setQuestionToE
   const [questionType, setQuestionType] = useState('Factual');
   const [format, setFormat] = useState('Single Liner');
   const [source, setSource] = useState('');
-  const [source, setSource] = useState('');
+
 
   const topicOptions = {
     Polity: {
